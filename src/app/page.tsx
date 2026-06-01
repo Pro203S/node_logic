@@ -1,7 +1,5 @@
-"use client";
+import { NodeEditor } from "@/components/node-editor/NodeEditor";
 
 export default function Page() {
-    return <div>
-
-    </div>;
+    return <NodeEditor />;
 }

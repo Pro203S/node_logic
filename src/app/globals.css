@@ -3,16 +3,9 @@
     src: url("/PretendardVariable.ttf") format("truetype");
 }
 
-@font-face {
-    font-family: 'Continuous';
-    src: url("/continuous.ttf") format("truetype");
-}
-
 * {
     font-family: 'Pretendard';
-    user-select: none;
-    overflow: hidden;
-    touch-action: none;
+    box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -20,9 +13,8 @@ html,
 body {
     margin: 0;
     background-color: #111;
-
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    min-height: 100%;
 }
 
 ::-webkit-scrollbar {

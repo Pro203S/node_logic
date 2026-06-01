@@ -1,0 +1,376 @@
+.shell {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top left, rgba(102, 217, 239, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(255, 121, 198, 0.16), transparent 24%),
+        linear-gradient(180deg, #090b12 0%, #11141d 100%);
+    color: #f5f7fb;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 18px;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(8, 10, 16, 0.78);
+    backdrop-filter: blur(18px);
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.eyebrow {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #92a0b7;
+}
+
+.workflowName,
+.nodeLabel {
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #f5f7fb;
+}
+
+.workflowName {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.workflowActions,
+.legend {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.secondaryButton,
+.addNodeButton,
+.workflowCard,
+.portRow,
+.iconButton,
+.valueToggle {
+    border: 0;
+    cursor: pointer;
+    color: inherit;
+}
+
+.secondaryButton {
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.workflowList,
+.nodeTypeGrid {
+    display: grid;
+    gap: 10px;
+}
+
+.workflowCard {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    text-align: left;
+}
+
+.workflowCardActive {
+    background: linear-gradient(135deg, rgba(102, 217, 239, 0.2), rgba(255, 121, 198, 0.14));
+    box-shadow: inset 0 0 0 1px rgba(102, 217, 239, 0.35);
+}
+
+.workflowMeta,
+.buttonMeta,
+.nodeDescription,
+.legend,
+.portValueMuted,
+.emptyPorts,
+.loading,
+.workspaceHeader p {
+    color: #9ba7bb;
+}
+
+.workflowMeta,
+.buttonMeta,
+.portValue,
+.portValueMuted {
+    font-size: 12px;
+}
+
+.addNodeButton {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.workspaceSection {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.workspaceHeader {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 24px 28px 18px;
+}
+
+.workspaceHeader h1 {
+    margin: 0 0 8px;
+    font-size: clamp(28px, 4vw, 42px);
+}
+
+.workspaceHeader p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.legend {
+    align-self: flex-start;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 12px;
+}
+
+.workspace {
+    position: relative;
+    flex: 1;
+    overflow: auto;
+    margin: 0 18px 18px 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 28px;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        rgba(7, 10, 18, 0.84);
+    background-size: 32px 32px, 32px 32px, auto;
+}
+
+.workspace::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(9, 11, 18, 0) 0%, rgba(9, 11, 18, 0.32) 100%);
+    pointer-events: none;
+}
+
+.edges {
+    position: absolute;
+    inset: 0;
+    width: 1600px;
+    height: 900px;
+    pointer-events: none;
+}
+
+.edge,
+.edgeHot {
+    fill: none;
+    stroke-linecap: round;
+    stroke-width: 4;
+    pointer-events: auto;
+}
+
+.edge {
+    stroke: rgba(130, 146, 170, 0.72);
+}
+
+.edgeHot {
+    stroke: #7ee787;
+    filter: drop-shadow(0 0 8px rgba(126, 231, 135, 0.45));
+}
+
+.node {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid;
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(19, 23, 34, 0.98), rgba(12, 15, 23, 0.98));
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
+}
+
+.nodeHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nodeType {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: #8996ad;
+}
+
+.nodeLabel {
+    width: 140px;
+    padding: 0;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.iconButton {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.nodeBody {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 86px minmax(0, 1fr);
+    gap: 10px;
+    padding: 16px;
+}
+
+.portColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.portRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 0;
+    background: transparent;
+}
+
+.portMetaLeft,
+.portMetaRight {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.portMetaRight {
+    margin-left: auto;
+}
+
+.port {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    background: #11141d;
+}
+
+.portInput {
+    box-shadow: -10px 0 0 -4px rgba(102, 217, 239, 0.75);
+}
+
+.portOutput {
+    box-shadow: 10px 0 0 -4px rgba(255, 184, 108, 0.75);
+}
+
+.portActive {
+    background: #7ee787;
+    border-color: #7ee787;
+}
+
+.portValue {
+    color: #dbe6f4;
+}
+
+.nodeCenter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    padding-top: 2px;
+}
+
+.resultPill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.valueToggle {
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.valueToggleActive {
+    background: rgba(126, 231, 135, 0.18);
+    color: #9effb6;
+}
+
+.nodeDescription,
+.emptyPorts,
+.loading {
+    font-size: 12px;
+}
+
+.loading {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    background: #0c0f16;
+}
+
+@media (max-width: 1080px) {
+    .shell {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .workspaceHeader {
+        flex-direction: column;
+    }
+
+    .workspace {
+        margin: 0 18px 18px;
+        min-height: 68vh;
+    }
+}
