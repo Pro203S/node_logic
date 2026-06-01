@@ -1,41 +1,52 @@
 .shell {
-    display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
-    min-height: 100vh;
-    background:
-        radial-gradient(circle at top left, rgba(102, 217, 239, 0.16), transparent 28%),
-        radial-gradient(circle at top right, rgba(255, 121, 198, 0.16), transparent 24%),
-        linear-gradient(180deg, #090b12 0%, #11141d 100%);
-    color: #f5f7fb;
+    position: relative;
+    height: 100vh;
+    background: #101010;
+    color: #f2f2f2;
 }
 
-.sidebar {
+.toolbar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    z-index: 10;
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 24px 18px;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(8, 10, 16, 0.78);
-    backdrop-filter: blur(18px);
-}
-
-.panel {
-    display: flex;
-    flex-direction: column;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 12px;
-    padding: 18px;
+    justify-content: flex-end;
+    padding: 14px 16px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.04);
+    border-radius: 18px;
+    background: rgba(24, 24, 24, 0.88);
+    backdrop-filter: blur(14px);
 }
 
-.eyebrow {
-    margin: 0;
-    font-size: 11px;
+.primaryButton,
+.secondaryButton,
+.iconButton,
+.workflowCard,
+.addNodeButton,
+.portRow,
+.switchButton {
+    border: 0;
+    cursor: pointer;
+    color: inherit;
+}
+
+.primaryButton,
+.secondaryButton {
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #2e2e2e;
+    white-space: nowrap;
+}
+
+.primaryButton {
+    background: #e0e0e0;
+    color: #111;
     font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #92a0b7;
 }
 
 .workflowName,
@@ -43,150 +54,42 @@
     border: 0;
     outline: 0;
     background: transparent;
-    color: #f5f7fb;
+    color: #f2f2f2;
 }
 
 .workflowName {
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.05);
-    font-size: 18px;
+    flex: 1;
+    min-width: 180px;
+    padding: 8px 2px;
+    font-size: 16px;
     font-weight: 700;
-}
-
-.workflowActions,
-.legend {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.secondaryButton,
-.addNodeButton,
-.workflowCard,
-.portRow,
-.iconButton,
-.valueToggle {
-    border: 0;
-    cursor: pointer;
-    color: inherit;
-}
-
-.secondaryButton {
-    padding: 10px 14px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.workflowList,
-.nodeTypeGrid {
-    display: grid;
-    gap: 10px;
-}
-
-.workflowCard {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    padding: 14px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.04);
-    text-align: left;
-}
-
-.workflowCardActive {
-    background: linear-gradient(135deg, rgba(102, 217, 239, 0.2), rgba(255, 121, 198, 0.14));
-    box-shadow: inset 0 0 0 1px rgba(102, 217, 239, 0.35);
-}
-
-.workflowMeta,
-.buttonMeta,
-.nodeDescription,
-.legend,
-.portValueMuted,
-.emptyPorts,
-.loading,
-.workspaceHeader p {
-    color: #9ba7bb;
-}
-
-.workflowMeta,
-.buttonMeta,
-.portValue,
-.portValueMuted {
-    font-size: 12px;
-}
-
-.addNodeButton {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    padding: 16px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.workspaceSection {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.workspaceHeader {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 24px 28px 18px;
-}
-
-.workspaceHeader h1 {
-    margin: 0 0 8px;
-    font-size: clamp(28px, 4vw, 42px);
-}
-
-.workspaceHeader p {
-    margin: 0;
-    font-size: 14px;
-}
-
-.legend {
-    align-self: flex-start;
-    padding: 10px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    font-size: 12px;
 }
 
 .workspace {
     position: relative;
-    flex: 1;
+    width: 100vw;
+    height: 100vh;
     overflow: auto;
-    margin: 0 18px 18px 0;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 28px;
+    overscroll-behavior: contain;
     background:
-        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-        rgba(7, 10, 18, 0.84);
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        #101010;
     background-size: 32px 32px, 32px 32px, auto;
+    touch-action: pan-x pan-y;
 }
 
-.workspace::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(9, 11, 18, 0) 0%, rgba(9, 11, 18, 0.32) 100%);
-    pointer-events: none;
+.canvas {
+    position: relative;
+    min-width: 100%;
+    min-height: 100%;
 }
 
 .edges {
     position: absolute;
     inset: 0;
-    width: 1600px;
-    height: 900px;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
 }
 
@@ -194,17 +97,105 @@
 .edgeHot {
     fill: none;
     stroke-linecap: round;
-    stroke-width: 4;
+    stroke-width: 3.5;
     pointer-events: auto;
 }
 
 .edge {
-    stroke: rgba(130, 146, 170, 0.72);
+    stroke: rgba(186, 186, 186, 0.72);
 }
 
 .edgeHot {
-    stroke: #7ee787;
-    filter: drop-shadow(0 0 8px rgba(126, 231, 135, 0.45));
+    stroke: #f0f0f0;
+}
+
+.drawer {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    bottom: 20px;
+    z-index: 12;
+    width: min(340px, calc(100vw - 24px));
+    padding: 18px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    overflow: auto;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    background: rgba(20, 20, 20, 0.96);
+    transform: translateX(100%);
+    transition: transform 180ms ease;
+}
+
+.drawerOpen {
+    transform: translateX(0);
+}
+
+.drawerHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.drawerLabel,
+.drawerSectionTitle,
+.buttonMeta,
+.workflowMeta,
+.portValueMuted,
+.nodeDescription,
+.emptyPorts {
+    color: #9d9d9d;
+}
+
+.drawerLabel,
+.drawerSectionTitle {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.drawerSection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+}
+
+.nodeTypeGrid {
+    display: grid;
+    gap: 10px;
+}
+
+.workflowCard,
+.addNodeButton {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #1b1b1b;
+    text-align: left;
+}
+
+.buttonMeta,
+.workflowMeta,
+.portValue,
+.portValueMuted {
+    font-size: 12px;
+}
+
+.workflowActions {
+    display: flex;
+    gap: 10px;
+}
+
+.hiddenInput {
+    display: none;
 }
 
 .node {
@@ -212,9 +203,9 @@
     display: flex;
     flex-direction: column;
     border: 1px solid;
-    border-radius: 22px;
-    background: linear-gradient(180deg, rgba(19, 23, 34, 0.98), rgba(12, 15, 23, 0.98));
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
+    border-radius: 18px;
+    background: linear-gradient(180deg, #171717, #131313);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.32);
 }
 
 .nodeHeader {
@@ -222,37 +213,40 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    padding: 14px 16px 10px;
+    min-height: 56px;
+    padding: 10px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .nodeType {
-    margin: 0 0 4px;
+    margin: 0 0 2px;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.18em;
-    color: #8996ad;
+    letter-spacing: 0.16em;
+    color: #a7a7a7;
+    line-height: 1.2;
 }
 
 .nodeLabel {
     width: 140px;
-    padding: 0;
+    margin: 0;
     font-size: 18px;
     font-weight: 700;
+    line-height: 1.2;
 }
 
 .iconButton {
     width: 30px;
     height: 30px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
+    background: #262626;
 }
 
 .nodeBody {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 86px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 88px minmax(0, 1fr);
     gap: 10px;
-    padding: 16px;
+    padding: 16px 12px;
 }
 
 .portColumn {
@@ -262,59 +256,69 @@
 }
 
 .portRow {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    width: 100%;
-    padding: 8px 0;
+    min-height: 28px;
     background: transparent;
 }
 
-.portMetaLeft,
-.portMetaRight {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+.portRowInput {
+    padding-left: 18px;
+    text-align: left;
+}
+
+.portRowOutput {
+    flex-direction: row-reverse;
+    padding-right: 18px;
+    text-align: right;
+}
+
+.portLabel {
+    flex: 1 1 auto;
+    min-width: 0;
     font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.portMetaRight {
-    margin-left: auto;
-}
-
-.port {
-    width: 12px;
-    height: 12px;
+.portHandle {
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 14px;
     border-radius: 999px;
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    background: #11141d;
+    border: 2px solid #d6d6d6;
+    background: #111;
+    transform: translateY(-50%);
 }
 
-.portInput {
-    box-shadow: -10px 0 0 -4px rgba(102, 217, 239, 0.75);
+.portHandleInput {
+    left: -17px;
 }
 
-.portOutput {
-    box-shadow: 10px 0 0 -4px rgba(255, 184, 108, 0.75);
+.portHandleOutput {
+    right: -17px;
 }
 
-.portActive {
-    background: #7ee787;
-    border-color: #7ee787;
+.portHandleActive {
+    background: #f1f1f1;
 }
 
 .portValue {
-    color: #dbe6f4;
+    flex: 0 0 auto;
+    color: #dfdfdf;
 }
 
 .nodeCenter {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
     justify-content: center;
-    padding-top: 2px;
+    gap: 12px;
 }
 
 .resultPill {
@@ -324,22 +328,49 @@
     min-width: 72px;
     padding: 8px 10px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
+    background: #222;
     font-size: 12px;
     font-weight: 700;
 }
 
-.valueToggle {
-    padding: 10px 14px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.08);
+.switchButton {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+    background: transparent;
     font-size: 12px;
     font-weight: 700;
 }
 
-.valueToggleActive {
-    background: rgba(126, 231, 135, 0.18);
-    color: #9effb6;
+.switchTrack {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 48px;
+    height: 28px;
+    padding: 4px;
+    border-radius: 999px;
+    background: #2c2c2c;
+    transition: background 160ms ease;
+}
+
+.switchThumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: #8a8a8a;
+    transition: transform 160ms ease, background 160ms ease;
+}
+
+.switchButtonOn .switchTrack {
+    background: #e0e0e0;
+}
+
+.switchButtonOn .switchThumb {
+    transform: translateX(20px);
+    background: #111;
 }
 
 .nodeDescription,
@@ -352,25 +383,19 @@
     display: grid;
     place-items: center;
     min-height: 100vh;
-    background: #0c0f16;
+    background: #101010;
 }
 
-@media (max-width: 1080px) {
-    .shell {
-        grid-template-columns: 1fr;
+@media (max-width: 900px) {
+    .toolbar {
+        left: 12px;
+        right: 12px;
     }
 
-    .sidebar {
-        border-right: 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .workspaceHeader {
-        flex-direction: column;
-    }
-
-    .workspace {
-        margin: 0 18px 18px;
-        min-height: 68vh;
+    .drawer {
+        top: 12px;
+        right: 12px;
+        bottom: 12px;
+        width: min(340px, calc(100vw - 24px));
     }
 }

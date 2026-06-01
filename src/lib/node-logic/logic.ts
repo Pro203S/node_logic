@@ -94,6 +94,33 @@ export function evaluateWorkflow(workflow: LogicWorkflow): EvaluationMap {
                         ? null
                         : Boolean(inputValues.a || inputValues.b);
                 break;
+            case "xor":
+                value =
+                    inputValues.a === null || inputValues.b === null
+                        ? null
+                        : Boolean(inputValues.a !== inputValues.b);
+                break;
+            case "not":
+                value = inputValues.in === null ? null : !inputValues.in;
+                break;
+            case "nand":
+                value =
+                    inputValues.a === null || inputValues.b === null
+                        ? null
+                        : !(inputValues.a && inputValues.b);
+                break;
+            case "nor":
+                value =
+                    inputValues.a === null || inputValues.b === null
+                        ? null
+                        : !(inputValues.a || inputValues.b);
+                break;
+            case "xnor":
+                value =
+                    inputValues.a === null || inputValues.b === null
+                        ? null
+                        : inputValues.a === inputValues.b;
+                break;
             case "output":
                 value = inputValues.in ?? null;
                 break;

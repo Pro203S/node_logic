@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { NODE_PORTS } from "@/lib/node-logic/constants";
 import { evaluateWorkflow } from "@/lib/node-logic/logic";
 import { loadWorkflowStore, saveWorkflowStore } from "@/lib/node-logic/storage";
@@ -13,6 +13,7 @@ import {
 } from "@/lib/node-logic/utils";
 import type {
     LogicNode,
+    LogicNodeType,
     LogicPortDefinition,
     LogicPortKind,
     LogicWorkflow,
@@ -31,7 +32,21 @@ type DragState = {
     offsetY: number;
 };
 
-const NODE_TYPE_ORDER = ["input", "and", "or", "output"] as const;
+const NODE_TYPE_ORDER: LogicNodeType[] = [
+    "input",
+    "output",
+    "and",
+    "or",
+    "xor",
+    "not",
+    "nand",
+    "nor",
+    "xnor",
+];
+
+const CANVAS_WIDTH = 2200;
+const CANVAS_HEIGHT = 1400;
+const CANVAS_PADDING = 240;
 
 function formatValue(value: boolean | null) {
     if (value === null) {
@@ -44,16 +59,18 @@ function formatValue(value: boolean | null) {
 function getPortClassName(kind: LogicPortKind, isActive: boolean) {
     const base =
         kind === "input"
-            ? `${styles.port} ${styles.portInput}`
-            : `${styles.port} ${styles.portOutput}`;
+            ? `${styles.portHandle} ${styles.portHandleInput}`
+            : `${styles.portHandle} ${styles.portHandleOutput}`;
 
-    return isActive ? `${base} ${styles.portActive}` : base;
+    return isActive ? `${base} ${styles.portHandleActive}` : base;
 }
 
 export function NodeEditor() {
     const [store, setStore] = useState<WorkflowStore | null>(null);
     const [pendingConnection, setPendingConnection] = useState<PendingConnection | null>(null);
     const [dragState, setDragState] = useState<DragState | null>(null);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+    const importInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         setStore(loadWorkflowStore());
@@ -69,20 +86,31 @@ export function NodeEditor() {
         }
     }, [persistStore, store]);
 
-    const activeWorkflow = useMemo(() => {
-        if (!store) {
-            return null;
-        }
-
-        return (
-            store.workflows.find((workflow) => workflow.id === store.activeWorkflowId) ??
-            store.workflows[0] ??
-            null
-        );
-    }, [store]);
+    const activeWorkflow = useMemo(() => store?.workflow ?? null, [store]);
 
     const evaluation = useMemo(() => {
         return activeWorkflow ? evaluateWorkflow(activeWorkflow) : {};
+    }, [activeWorkflow]);
+
+    const canvasSize = useMemo(() => {
+        if (!activeWorkflow) {
+            return { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
+        }
+
+        const maxWidth = activeWorkflow.nodes.reduce((currentMax, node) => {
+            const bounds = getNodeBounds(node);
+            return Math.max(currentMax, node.position.x + bounds.width + CANVAS_PADDING);
+        }, CANVAS_WIDTH);
+
+        const maxHeight = activeWorkflow.nodes.reduce((currentMax, node) => {
+            const bounds = getNodeBounds(node);
+            return Math.max(currentMax, node.position.y + bounds.height + CANVAS_PADDING);
+        }, CANVAS_HEIGHT);
+
+        return {
+            width: maxWidth,
+            height: maxHeight,
+        };
     }, [activeWorkflow]);
 
     useEffect(() => {
@@ -100,25 +128,21 @@ export function NodeEditor() {
 
                 return {
                     ...currentStore,
-                    workflows: currentStore.workflows.map((workflow) =>
-                        workflow.id !== currentStore.activeWorkflowId
-                            ? workflow
-                            : {
-                                  ...workflow,
-                                  updatedAt: new Date().toISOString(),
-                                  nodes: workflow.nodes.map((node) =>
-                                      node.id !== activeDrag.nodeId
-                                          ? node
-                                          : {
-                                                ...node,
-                                                position: {
-                                                    x: event.clientX - activeDrag.offsetX,
-                                                    y: event.clientY - activeDrag.offsetY,
-                                                },
-                                            },
-                                  ),
-                              },
-                    ),
+                    workflow: {
+                        ...currentStore.workflow,
+                        updatedAt: new Date().toISOString(),
+                        nodes: currentStore.workflow.nodes.map((node) =>
+                            node.id !== activeDrag.nodeId
+                                ? node
+                                : {
+                                      ...node,
+                                      position: {
+                                          x: event.clientX - activeDrag.offsetX,
+                                          y: event.clientY - activeDrag.offsetY,
+                                      },
+                                  },
+                        ),
+                    },
                 };
             });
         }
@@ -140,24 +164,22 @@ export function NodeEditor() {
         return <div className={styles.loading}>Loading editor...</div>;
     }
 
-    const currentStore = store;
+    const currentWorkflow = activeWorkflow;
 
     function updateWorkflow(updater: (workflow: LogicWorkflow) => LogicWorkflow) {
-        setStore((currentStore) => {
-            if (!currentStore) {
-                return currentStore;
+        setStore((nextStore) => {
+            if (!nextStore) {
+                return nextStore;
             }
 
             return {
-                ...currentStore,
-                workflows: currentStore.workflows.map((workflow) =>
-                    workflow.id === currentStore.activeWorkflowId ? updater(workflow) : workflow,
-                ),
+                ...nextStore,
+                workflow: updater(nextStore.workflow),
             };
         });
     }
 
-    function addNode(type: (typeof NODE_TYPE_ORDER)[number]) {
+    function addNode(type: LogicNodeType) {
         updateWorkflow((workflow) => ({
             ...workflow,
             updatedAt: new Date().toISOString(),
@@ -166,33 +188,25 @@ export function NodeEditor() {
     }
 
     function createNewWorkflow() {
-        const workflow = createWorkflow(`Workflow ${currentStore.workflows.length + 1}`);
         setStore({
-            activeWorkflowId: workflow.id,
-            workflows: [...currentStore.workflows, workflow],
+            workflow: createWorkflow(currentWorkflow.name),
         });
         setPendingConnection(null);
     }
 
     function deleteCurrentWorkflow() {
-        if (currentStore.workflows.length === 1) {
-            const workflow = createWorkflow("Workflow 1");
-            setStore({
-                activeWorkflowId: workflow.id,
-                workflows: [workflow],
-            });
-            setPendingConnection(null);
-            return;
-        }
-
-        const remaining = currentStore.workflows.filter(
-            (workflow) => workflow.id !== currentStore.activeWorkflowId,
-        );
         setStore({
-            activeWorkflowId: remaining[0].id,
-            workflows: remaining,
+            workflow: createWorkflow(currentWorkflow.name),
         });
         setPendingConnection(null);
+    }
+
+    function updateWorkflowName(name: string) {
+        updateWorkflow((workflow) => ({
+            ...workflow,
+            name,
+            updatedAt: new Date().toISOString(),
+        }));
     }
 
     function toggleInputNode(nodeId: string) {
@@ -217,6 +231,51 @@ export function NodeEditor() {
             ),
         }));
         setPendingConnection((current) => (current?.nodeId === nodeId ? null : current));
+    }
+
+    function removeEdge(edgeId: string) {
+        updateWorkflow((workflow) => ({
+            ...workflow,
+            updatedAt: new Date().toISOString(),
+            edges: workflow.edges.filter((edge) => edge.id !== edgeId),
+        }));
+    }
+
+    function exportWorkflow() {
+        const payload = JSON.stringify(activeWorkflow, null, 2);
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `${currentWorkflow.name || "workflow"}.json`;
+        anchor.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importWorkflow(event: React.ChangeEvent<HTMLInputElement>) {
+        const file = event.target.files?.[0];
+        if (!file) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const parsed = JSON.parse(String(reader.result)) as LogicWorkflow;
+                setStore({
+                    workflow: {
+                        ...createWorkflow(parsed.name || "Workflow 1"),
+                        ...parsed,
+                    },
+                });
+                setPendingConnection(null);
+            } catch {
+                window.alert("Invalid workflow JSON");
+            } finally {
+                event.target.value = "";
+            }
+        };
+        reader.readAsText(file);
     }
 
     function startDrag(event: React.PointerEvent<HTMLDivElement>, node: LogicNode) {
@@ -254,32 +313,6 @@ export function NodeEditor() {
         setPendingConnection(null);
     }
 
-    function updateNodeLabel(nodeId: string, label: string) {
-        updateWorkflow((workflow) => ({
-            ...workflow,
-            updatedAt: new Date().toISOString(),
-            nodes: workflow.nodes.map((node) =>
-                node.id === nodeId ? { ...node, label } : node,
-            ),
-        }));
-    }
-
-    function updateWorkflowName(name: string) {
-        updateWorkflow((workflow) => ({
-            ...workflow,
-            name,
-            updatedAt: new Date().toISOString(),
-        }));
-    }
-
-    function removeEdge(edgeId: string) {
-        updateWorkflow((workflow) => ({
-            ...workflow,
-            updatedAt: new Date().toISOString(),
-            edges: workflow.edges.filter((edge) => edge.id !== edgeId),
-        }));
-    }
-
     function renderPort(
         node: LogicNode,
         port: LogicPortDefinition,
@@ -306,22 +339,15 @@ export function NodeEditor() {
                 key={port.id}
                 type="button"
                 data-port="true"
-                className={styles.portRow}
+                className={
+                    kind === "input"
+                        ? `${styles.portRow} ${styles.portRowInput}`
+                        : `${styles.portRow} ${styles.portRowOutput}`
+                }
                 onClick={onClick}
             >
-                <span className={kind === "input" ? styles.portMetaLeft : styles.portMetaRight}>
-                    {kind === "input" ? (
-                        <>
-                            <span className={getPortClassName(kind, isSelected)} />
-                            <span>{port.label}</span>
-                        </>
-                    ) : (
-                        <>
-                            <span>{port.label}</span>
-                            <span className={getPortClassName(kind, isSelected)} />
-                        </>
-                    )}
-                </span>
+                <span className={getPortClassName(kind, isSelected)} />
+                <span className={styles.portLabel}>{port.label}</span>
                 <span className={value === null ? styles.portValueMuted : styles.portValue}>
                     {formatValue(value)}
                 </span>
@@ -331,101 +357,44 @@ export function NodeEditor() {
 
     return (
         <main className={styles.shell}>
-            <aside className={styles.sidebar}>
-                <div className={styles.panel}>
-                    <p className={styles.eyebrow}>Workflow</p>
-                    <input
-                        className={styles.workflowName}
-                        value={activeWorkflow.name}
-                        onChange={(event) => updateWorkflowName(event.target.value)}
-                        placeholder="Workflow name"
-                    />
-                    <div className={styles.workflowActions}>
-                        <button
-                            type="button"
-                            className={styles.secondaryButton}
-                            onClick={createNewWorkflow}
-                        >
-                            New
-                        </button>
-                        <button
-                            type="button"
-                            className={styles.secondaryButton}
-                            onClick={deleteCurrentWorkflow}
-                        >
-                            Delete
-                        </button>
-                    </div>
-                </div>
+            <div className={styles.toolbar}>
+                <input
+                    className={styles.workflowName}
+                    value={currentWorkflow.name}
+                    onChange={(event) => updateWorkflowName(event.target.value)}
+                    placeholder="Workflow name"
+                />
+                <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={createNewWorkflow}
+                >
+                    New Workflow
+                </button>
+                <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={deleteCurrentWorkflow}
+                >
+                    Delete Workflow
+                </button>
+                <button
+                    type="button"
+                    className={styles.primaryButton}
+                    onClick={() => setIsDrawerOpen((open) => !open)}
+                >
+                    {isDrawerOpen ? "Drawer ->" : "Drawer <-"}
+                </button>
+            </div>
 
-                <div className={styles.panel}>
-                    <p className={styles.eyebrow}>Saved Workflows</p>
-                    <div className={styles.workflowList}>
-                        {currentStore.workflows.map((workflow) => (
-                            <button
-                                key={workflow.id}
-                                type="button"
-                                className={
-                                    workflow.id === activeWorkflow.id
-                                        ? `${styles.workflowCard} ${styles.workflowCardActive}`
-                                        : styles.workflowCard
-                                }
-                                onClick={() => {
-                                    setStore({
-                                        ...currentStore,
-                                        activeWorkflowId: workflow.id,
-                                    });
-                                    setPendingConnection(null);
-                                }}
-                            >
-                                <span>{workflow.name}</span>
-                                <span className={styles.workflowMeta}>
-                                    {workflow.nodes.length} nodes / {workflow.edges.length} edges
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className={styles.panel}>
-                    <p className={styles.eyebrow}>Add Node</p>
-                    <div className={styles.nodeTypeGrid}>
-                        {NODE_TYPE_ORDER.map((type) => (
-                            <button
-                                key={type}
-                                type="button"
-                                className={styles.addNodeButton}
-                                onClick={() => addNode(type)}
-                            >
-                                <span>{type.toUpperCase()}</span>
-                                <span className={styles.buttonMeta}>
-                                    {NODE_PORTS[type].description}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </aside>
-
-            <section className={styles.workspaceSection}>
-                <div className={styles.workspaceHeader}>
-                    <div>
-                        <h1>Node Logic Builder</h1>
-                        <p>
-                            왼쪽 포트는 INPUT, 오른쪽 포트는 OUTPUT이다. OUTPUT을 누른 뒤
-                            INPUT을 눌러 연결한다.
-                        </p>
-                    </div>
-                    <div className={styles.legend}>
-                        <span>Autosave: localStorage</span>
-                        <span>Double click wire to delete</span>
-                    </div>
-                </div>
-
-                <div className={styles.workspace}>
+            <section className={styles.workspace}>
+                <div
+                    className={styles.canvas}
+                    style={{ width: canvasSize.width, height: canvasSize.height }}
+                >
                     <svg
                         className={styles.edges}
-                        viewBox="0 0 1600 900"
+                        viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
                         preserveAspectRatio="none"
                     >
                         {activeWorkflow.edges.map((edge) => {
@@ -442,10 +411,7 @@ export function NodeEditor() {
 
                             const source = getPortPosition(sourceNode, edge.from.portId, "output");
                             const target = getPortPosition(targetNode, edge.to.portId, "input");
-                            const controlOffset = Math.max(
-                                80,
-                                (target.x - source.x) * 0.45,
-                            );
+                            const controlOffset = Math.max(72, (target.x - source.x) * 0.45);
                             const path = `M ${source.x} ${source.y} C ${source.x + controlOffset} ${source.y}, ${target.x - controlOffset} ${target.y}, ${target.x} ${target.y}`;
                             const isHot =
                                 evaluation[sourceNode.id]?.outputValues[edge.from.portId] === true;
@@ -455,7 +421,10 @@ export function NodeEditor() {
                                     key={edge.id}
                                     d={path}
                                     className={isHot ? styles.edgeHot : styles.edge}
-                                    onDoubleClick={() => removeEdge(edge.id)}
+                                    onContextMenu={(event) => {
+                                        event.preventDefault();
+                                        removeEdge(edge.id);
+                                    }}
                                 />
                             );
                         })}
@@ -481,13 +450,7 @@ export function NodeEditor() {
                                 <div className={styles.nodeHeader}>
                                     <div>
                                         <p className={styles.nodeType}>{node.type.toUpperCase()}</p>
-                                        <input
-                                            className={styles.nodeLabel}
-                                            value={node.label}
-                                            onChange={(event) =>
-                                                updateNodeLabel(node.id, event.target.value)
-                                            }
-                                        />
+                                        <p className={styles.nodeLabel}>{node.label}</p>
                                     </div>
                                     <button
                                         type="button"
@@ -510,45 +473,60 @@ export function NodeEditor() {
                                                 ),
                                             )
                                         ) : (
-                                            <div className={styles.emptyPorts}>No INPUT</div>
+                                            <div className={styles.emptyPorts}>No input</div>
                                         )}
                                     </div>
 
                                     <div className={styles.nodeCenter}>
-                                        <span className={styles.resultPill}>
-                                            {formatValue(nodeState?.value ?? null)}
-                                        </span>
                                         {node.type === "input" ? (
-                                            <button
-                                                type="button"
-                                                className={
-                                                    node.value
-                                                        ? `${styles.valueToggle} ${styles.valueToggleActive}`
-                                                        : styles.valueToggle
-                                                }
-                                                onClick={() => toggleInputNode(node.id)}
-                                            >
-                                                {node.value ? "TRUE" : "FALSE"}
-                                            </button>
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    className={
+                                                        node.value
+                                                            ? `${styles.switchButton} ${styles.switchButtonOn}`
+                                                            : styles.switchButton
+                                                    }
+                                                    onClick={() => toggleInputNode(node.id)}
+                                                >
+                                                    <span className={styles.switchTrack}>
+                                                        <span className={styles.switchThumb} />
+                                                    </span>
+                                                    <span>{node.value ? "TRUE" : "FALSE"}</span>
+                                                </button>
+                                                <span className={styles.resultPill}>
+                                                    {formatValue(nodeState?.outputValues.out ?? null)}
+                                                </span>
+                                            </>
+                                        ) : node.type === "output" ? (
+                                            <>
+                                                <span className={styles.resultPill}>
+                                                    {formatValue(nodeState?.value ?? null)}
+                                                </span>
+                                                <p className={styles.nodeDescription}>
+                                                    INPUT STATUS
+                                                </p>
+                                            </>
                                         ) : (
-                                            <p className={styles.nodeDescription}>
-                                                {NODE_PORTS[node.type].description}
-                                            </p>
+                                            <>
+                                                <span className={styles.resultPill}>
+                                                    {formatValue(nodeState?.value ?? null)}
+                                                </span>
+                                                <p className={styles.nodeDescription}>
+                                                    {NODE_PORTS[node.type].description}
+                                                </p>
+                                            </>
                                         )}
                                     </div>
 
                                     <div className={styles.portColumn}>
-                                        {NODE_PORTS[node.type].outputs.length ? (
-                                            NODE_PORTS[node.type].outputs.map((port) =>
-                                                renderPort(
-                                                    node,
-                                                    port,
-                                                    "output",
-                                                    nodeState?.outputValues[port.id] ?? null,
-                                                ),
-                                            )
-                                        ) : (
-                                            <div className={styles.emptyPorts}>No OUTPUT</div>
+                                        {NODE_PORTS[node.type].outputs.map((port) =>
+                                            renderPort(
+                                                node,
+                                                port,
+                                                "output",
+                                                nodeState?.outputValues[port.id] ?? null,
+                                            ),
                                         )}
                                     </div>
                                 </div>
@@ -557,6 +535,77 @@ export function NodeEditor() {
                     })}
                 </div>
             </section>
+
+            <aside
+                className={
+                    isDrawerOpen
+                        ? `${styles.drawer} ${styles.drawerOpen}`
+                        : styles.drawer
+                }
+            >
+                <div className={styles.drawerHeader}>
+                    <p className={styles.drawerLabel}>Drawer</p>
+                    <button
+                        type="button"
+                        className={styles.iconButton}
+                        onClick={() => setIsDrawerOpen(false)}
+                    >
+                        x
+                    </button>
+                </div>
+
+                <div className={styles.drawerSection}>
+                    <p className={styles.drawerSectionTitle}>Workflow</p>
+                    <div className={styles.workflowCard}>
+                        <span>{activeWorkflow.name}</span>
+                        <span className={styles.workflowMeta}>
+                            {currentWorkflow.nodes.length} nodes / {currentWorkflow.edges.length} edges
+                        </span>
+                    </div>
+                    <div className={styles.workflowActions}>
+                        <button
+                            type="button"
+                            className={styles.secondaryButton}
+                            onClick={exportWorkflow}
+                        >
+                            Export
+                        </button>
+                        <button
+                            type="button"
+                            className={styles.secondaryButton}
+                            onClick={() => importInputRef.current?.click()}
+                        >
+                            Import
+                        </button>
+                    </div>
+                    <input
+                        ref={importInputRef}
+                        type="file"
+                        accept="application/json"
+                        className={styles.hiddenInput}
+                        onChange={importWorkflow}
+                    />
+                </div>
+
+                <div className={styles.drawerSection}>
+                    <p className={styles.drawerSectionTitle}>Nodes</p>
+                    <div className={styles.nodeTypeGrid}>
+                        {NODE_TYPE_ORDER.map((type) => (
+                            <button
+                                key={type}
+                                type="button"
+                                className={styles.addNodeButton}
+                                onClick={() => addNode(type)}
+                            >
+                                <span>{type.toUpperCase()}</span>
+                                <span className={styles.buttonMeta}>
+                                    {NODE_PORTS[type].description}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </aside>
         </main>
     );
 }

@@ -2,9 +2,14 @@ import type { LogicNodeType, LogicPortDefinition } from "@/types/workflow";
 
 export const WORKFLOW_STORAGE_KEY = "node-logic-workflows";
 export const NODE_WIDTH = 240;
-export const NODE_HEADER_HEIGHT = 44;
-export const NODE_PORT_SPACING = 28;
-export const NODE_PORT_START = 62;
+export const NODE_HEADER_HEIGHT = 56;
+export const NODE_BODY_PADDING_Y = 16;
+export const NODE_PORT_ROW_HEIGHT = 28;
+export const NODE_PORT_ROW_GAP = 10;
+export const NODE_PORT_SPACING = NODE_PORT_ROW_HEIGHT + NODE_PORT_ROW_GAP;
+export const NODE_PORT_START =
+    NODE_HEADER_HEIGHT + NODE_BODY_PADDING_Y + NODE_PORT_ROW_HEIGHT / 2;
+export const PORT_HANDLE_OFFSET = 10;
 
 export const NODE_PORTS: Record<
     LogicNodeType,
@@ -17,9 +22,9 @@ export const NODE_PORTS: Record<
 > = {
     input: {
         inputs: [],
-        outputs: [{ id: "out", label: "Value" }],
-        accent: "#66d9ef",
-        description: "Boolean source",
+        outputs: [{ id: "out", label: "Output" }],
+        accent: "#d0d0d0",
+        description: "Switch source",
     },
     and: {
         inputs: [
@@ -27,7 +32,7 @@ export const NODE_PORTS: Record<
             { id: "b", label: "B" },
         ],
         outputs: [{ id: "out", label: "Result" }],
-        accent: "#7ee787",
+        accent: "#bdbdbd",
         description: "A && B",
     },
     or: {
@@ -36,13 +41,55 @@ export const NODE_PORTS: Record<
             { id: "b", label: "B" },
         ],
         outputs: [{ id: "out", label: "Result" }],
-        accent: "#ffb86c",
+        accent: "#b3b3b3",
         description: "A || B",
+    },
+    xor: {
+        inputs: [
+            { id: "a", label: "A" },
+            { id: "b", label: "B" },
+        ],
+        outputs: [{ id: "out", label: "Result" }],
+        accent: "#ababab",
+        description: "A !== B",
+    },
+    not: {
+        inputs: [{ id: "in", label: "In" }],
+        outputs: [{ id: "out", label: "Result" }],
+        accent: "#a3a3a3",
+        description: "!A",
+    },
+    nand: {
+        inputs: [
+            { id: "a", label: "A" },
+            { id: "b", label: "B" },
+        ],
+        outputs: [{ id: "out", label: "Result" }],
+        accent: "#9c9c9c",
+        description: "!(A && B)",
+    },
+    nor: {
+        inputs: [
+            { id: "a", label: "A" },
+            { id: "b", label: "B" },
+        ],
+        outputs: [{ id: "out", label: "Result" }],
+        accent: "#949494",
+        description: "!(A || B)",
+    },
+    xnor: {
+        inputs: [
+            { id: "a", label: "A" },
+            { id: "b", label: "B" },
+        ],
+        outputs: [{ id: "out", label: "Result" }],
+        accent: "#8c8c8c",
+        description: "A === B",
     },
     output: {
         inputs: [{ id: "in", label: "Input" }],
-        outputs: [],
-        accent: "#ff79c6",
-        description: "Result sink",
+        outputs: [{ id: "out", label: "Output" }],
+        accent: "#848484",
+        description: "Show input state",
     },
 };

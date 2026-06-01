@@ -1,8 +1,12 @@
 import {
+    NODE_BODY_PADDING_Y,
     NODE_HEADER_HEIGHT,
+    NODE_PORT_ROW_GAP,
+    NODE_PORT_ROW_HEIGHT,
     NODE_PORT_SPACING,
     NODE_PORT_START,
     NODE_PORTS,
+    PORT_HANDLE_OFFSET,
     NODE_WIDTH,
 } from "@/lib/node-logic/constants";
 import type { LogicNode, LogicNodeType, LogicPortKind, LogicWorkflow } from "@/types/workflow";
@@ -17,7 +21,12 @@ export function getNodeHeight(nodeType: LogicNodeType) {
         NODE_PORTS[nodeType].outputs.length,
         1,
     );
-    return NODE_PORT_START + NODE_PORT_SPACING * portCount + 26;
+    return (
+        NODE_HEADER_HEIGHT +
+        NODE_BODY_PADDING_Y * 2 +
+        NODE_PORT_ROW_HEIGHT * portCount +
+        NODE_PORT_ROW_GAP * Math.max(portCount - 1, 0)
+    );
 }
 
 export function createNode(type: LogicNodeType, nodeCount: number): LogicNode {
@@ -40,21 +49,7 @@ export function createWorkflow(name: string): LogicWorkflow {
     return {
         id: createId("workflow"),
         name,
-        nodes: [
-            {
-                id: createId("node"),
-                type: "input",
-                label: "INPUT 1",
-                position: { x: 360, y: 160 },
-                value: false,
-            },
-            {
-                id: createId("node"),
-                type: "output",
-                label: "OUTPUT 1",
-                position: { x: 920, y: 220 },
-            },
-        ],
+        nodes: [],
         edges: [],
         updatedAt: new Date().toISOString(),
     };
@@ -67,7 +62,9 @@ export function getPortPosition(node: LogicNode, portId: string, kind: LogicPort
     const index = portIndex >= 0 ? portIndex : 0;
 
     return {
-        x: node.position.x + (kind === "input" ? 0 : NODE_WIDTH),
+        x:
+            node.position.x +
+            (kind === "input" ? -PORT_HANDLE_OFFSET : NODE_WIDTH + PORT_HANDLE_OFFSET),
         y: node.position.y + NODE_PORT_START + index * NODE_PORT_SPACING,
     };
 }

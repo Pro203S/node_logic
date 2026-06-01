@@ -1,4 +1,13 @@
-export type LogicNodeType = "input" | "and" | "or" | "output";
+export type LogicNodeType =
+    | "input"
+    | "and"
+    | "or"
+    | "xor"
+    | "not"
+    | "nand"
+    | "nor"
+    | "xnor"
+    | "output";
 
 export type LogicPortKind = "input" | "output";
 
@@ -39,6 +48,5 @@ export type LogicWorkflow = {
 };
 
 export type WorkflowStore = {
-    activeWorkflowId: string;
-    workflows: LogicWorkflow[];
+    workflow: LogicWorkflow;
 };
